@@ -1,0 +1,56 @@
+[
+{
+  "directory": "C:/tools/prog-paralela/practica-escala-grises/build",
+  "command": "C:\\tools\\mingw64\\bin\\g++.exe -DFMT_SHARED -DCMAKE_INTDIR=\\\"Debug\\\" -isystem C:/tools/vcpkg-2026.03.18/installed/x64-mingw-dynamic/include  -mavx2 -fopenmp -g -o CMakeFiles\\practica-escala-grises.dir\\Debug\\main.cpp.obj -c C:\\tools\\prog-paralela\\practica-escala-grises\\main.cpp",
+  "file": "C:/tools/prog-paralela/practica-escala-grises/main.cpp",
+  "output": "C:/tools/prog-paralela/practica-escala-grises/build/CMakeFiles/practica-escala-grises.dir/Debug/main.cpp.obj"
+},
+{
+  "directory": "C:/tools/prog-paralela/practica-escala-grises/build",
+  "command": "C:\\tools\\mingw64\\bin\\g++.exe -DFMT_SHARED -DCMAKE_INTDIR=\\\"Debug\\\" -isystem C:/tools/vcpkg-2026.03.18/installed/x64-mingw-dynamic/include  -mavx2 -fopenmp -g -o CMakeFiles\\practica-escala-grises.dir\\Debug\\filtro_simd.cpp.obj -c C:\\tools\\prog-paralela\\practica-escala-grises\\filtro_simd.cpp",
+  "file": "C:/tools/prog-paralela/practica-escala-grises/filtro_simd.cpp",
+  "output": "C:/tools/prog-paralela/practica-escala-grises/build/CMakeFiles/practica-escala-grises.dir/Debug/filtro_simd.cpp.obj"
+},
+{
+  "directory": "C:/tools/prog-paralela/practica-escala-grises/build",
+  "command": "C:\\tools\\mingw64\\bin\\g++.exe -DFMT_SHARED -DCMAKE_INTDIR=\\\"Debug\\\" -isystem C:/tools/vcpkg-2026.03.18/installed/x64-mingw-dynamic/include  -mavx2 -fopenmp -g -o CMakeFiles\\practica-escala-grises.dir\\Debug\\filtro_openmp.cpp.obj -c C:\\tools\\prog-paralela\\practica-escala-grises\\filtro_openmp.cpp",
+  "file": "C:/tools/prog-paralela/practica-escala-grises/filtro_openmp.cpp",
+  "output": "C:/tools/prog-paralela/practica-escala-grises/build/CMakeFiles/practica-escala-grises.dir/Debug/filtro_openmp.cpp.obj"
+},
+{
+  "directory": "C:/tools/prog-paralela/practica-escala-grises/build",
+  "command": "C:\\tools\\mingw64\\bin\\g++.exe -DFMT_SHARED -DCMAKE_INTDIR=\\\"Release\\\" -isystem C:/tools/vcpkg-2026.03.18/installed/x64-mingw-dynamic/include  -mavx2 -fopenmp -O3 -DNDEBUG -o CMakeFiles\\practica-escala-grises.dir\\Release\\main.cpp.obj -c C:\\tools\\prog-paralela\\practica-escala-grises\\main.cpp",
+  "file": "C:/tools/prog-paralela/practica-escala-grises/main.cpp",
+  "output": "C:/tools/prog-paralela/practica-escala-grises/build/CMakeFiles/practica-escala-grises.dir/Release/main.cpp.obj"
+},
+{
+  "directory": "C:/tools/prog-paralela/practica-escala-grises/build",
+  "command": "C:\\tools\\mingw64\\bin\\g++.exe -DFMT_SHARED -DCMAKE_INTDIR=\\\"Release\\\" -isystem C:/tools/vcpkg-2026.03.18/installed/x64-mingw-dynamic/include  -mavx2 -fopenmp -O3 -DNDEBUG -o CMakeFiles\\practica-escala-grises.dir\\Release\\filtro_simd.cpp.obj -c C:\\tools\\prog-paralela\\practica-escala-grises\\filtro_simd.cpp",
+  "file": "C:/tools/prog-paralela/practica-escala-grises/filtro_simd.cpp",
+  "output": "C:/tools/prog-paralela/practica-escala-grises/build/CMakeFiles/practica-escala-grises.dir/Release/filtro_simd.cpp.obj"
+},
+{
+  "directory": "C:/tools/prog-paralela/practica-escala-grises/build",
+  "command": "C:\\tools\\mingw64\\bin\\g++.exe -DFMT_SHARED -DCMAKE_INTDIR=\\\"Release\\\" -isystem C:/tools/vcpkg-2026.03.18/installed/x64-mingw-dynamic/include  -mavx2 -fopenmp -O3 -DNDEBUG -o CMakeFiles\\practica-escala-grises.dir\\Release\\filtro_openmp.cpp.obj -c C:\\tools\\prog-paralela\\practica-escala-grises\\filtro_openmp.cpp",
+  "file": "C:/tools/prog-paralela/practica-escala-grises/filtro_openmp.cpp",
+  "output": "C:/tools/prog-paralela/practica-escala-grises/build/CMakeFiles/practica-escala-grises.dir/Release/filtro_openmp.cpp.obj"
+},
+{
+  "directory": "C:/tools/prog-paralela/practica-escala-grises/build",
+  "command": "C:\\tools\\mingw64\\bin\\g++.exe -DFMT_SHARED -DCMAKE_INTDIR=\\\"RelWithDebInfo\\\" -isystem C:/tools/vcpkg-2026.03.18/installed/x64-mingw-dynamic/include  -mavx2 -fopenmp -O2 -g -DNDEBUG -o CMakeFiles\\practica-escala-grises.dir\\RelWithDebInfo\\main.cpp.obj -c C:\\tools\\prog-paralela\\practica-escala-grises\\main.cpp",
+  "file": "C:/tools/prog-paralela/practica-escala-grises/main.cpp",
+  "output": "C:/tools/prog-paralela/practica-escala-grises/build/CMakeFiles/practica-escala-grises.dir/RelWithDebInfo/main.cpp.obj"
+},
+{
+  "directory": "C:/tools/prog-paralela/practica-escala-grises/build",
+  "command": "C:\\tools\\mingw64\\bin\\g++.exe -DFMT_SHARED -DCMAKE_INTDIR=\\\"RelWithDebInfo\\\" -isystem C:/tools/vcpkg-2026.03.18/installed/x64-mingw-dynamic/include  -mavx2 -fopenmp -O2 -g -DNDEBUG -o CMakeFiles\\practica-escala-grises.dir\\RelWithDebInfo\\filtro_simd.cpp.obj -c C:\\tools\\prog-paralela\\practica-escala-grises\\filtro_simd.cpp",
+  "file": "C:/tools/prog-paralela/practica-escala-grises/filtro_simd.cpp",
+  "output": "C:/tools/prog-paralela/practica-escala-grises/build/CMakeFiles/practica-escala-grises.dir/RelWithDebInfo/filtro_simd.cpp.obj"
+},
+{
+  "directory": "C:/tools/prog-paralela/practica-escala-grises/build",
+  "command": "C:\\tools\\mingw64\\bin\\g++.exe -DFMT_SHARED -DCMAKE_INTDIR=\\\"RelWithDebInfo\\\" -isystem C:/tools/vcpkg-2026.03.18/installed/x64-mingw-dynamic/include  -mavx2 -fopenmp -O2 -g -DNDEBUG -o CMakeFiles\\practica-escala-grises.dir\\RelWithDebInfo\\filtro_openmp.cpp.obj -c C:\\tools\\prog-paralela\\practica-escala-grises\\filtro_openmp.cpp",
+  "file": "C:/tools/prog-paralela/practica-escala-grises/filtro_openmp.cpp",
+  "output": "C:/tools/prog-paralela/practica-escala-grises/build/CMakeFiles/practica-escala-grises.dir/RelWithDebInfo/filtro_openmp.cpp.obj"
+}
+]

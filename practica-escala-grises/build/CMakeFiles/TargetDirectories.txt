@@ -1,0 +1,3 @@
+C:/tools/prog-paralela/practica-escala-grises/build/CMakeFiles/practica-escala-grises.dir
+C:/tools/prog-paralela/practica-escala-grises/build/CMakeFiles/edit_cache.dir
+C:/tools/prog-paralela/practica-escala-grises/build/CMakeFiles/rebuild_cache.dir

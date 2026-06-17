@@ -1,0 +1,15 @@
+# ninja log v7
+59	253	8011681703234226	CMakeFiles/producto-escalar.dir/Debug/producto_escalar_serial.cpp.obj	276df6b21a15ae2
+33	358	8020755615121073	CMakeFiles/producto-escalar.dir/Debug/producto_escalar_openmp.cpp.obj	c84521bd40cc9ea3
+33	621	8020758078439985	CMakeFiles/producto-escalar.dir/Debug/main.cpp.obj	169b925a22b89ba4
+36	897	8020752409092164	CMakeFiles/producto-escalar.dir/Debug/producto_escalar_simd.cpp.obj	5724b97f91c1f333
+622	1207	8020758084322843	Debug/producto-escalar.exe	2af41b6af75ed024
+151	316	8020747314500005	CMakeFiles/producto-escalar.dir/Debug/suma_vector_peso_openmp.cpp.obj	5a1589415381a100
+42	1044	8020752409160681	CMakeFiles/producto-escalar.dir/Debug/suma_vector_peso_simd.cpp.obj	a49bd30c69f74b65
+72	185	8020758583894012	CMakeFiles/practica-matematica-numerica.dir/Debug/producto_escalar_serial.cpp.obj	963b88a794c63fac
+90	205	8020758584075408	CMakeFiles/practica-matematica-numerica.dir/Debug/suma_vector_peso_openmp.cpp.obj	86f6db9312f80dc5
+78	417	8020758583951480	CMakeFiles/practica-matematica-numerica.dir/Debug/producto_escalar_openmp.cpp.obj	640bc50c29be01df
+65	672	8020758583826134	CMakeFiles/practica-matematica-numerica.dir/Debug/main.cpp.obj	aa89502e22c8b8d4
+84	867	8020758584020838	CMakeFiles/practica-matematica-numerica.dir/Debug/producto_escalar_simd.cpp.obj	28b600241aec3fe6
+97	982	8020758584147320	CMakeFiles/practica-matematica-numerica.dir/Debug/suma_vector_peso_simd.cpp.obj	12e98450669e9a65
+982	1555	8020758592996576	Debug/practica-matematica-numerica.exe	7b8a3e43d0a072c7

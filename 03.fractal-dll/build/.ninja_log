@@ -1,0 +1,5 @@
+# ninja log v7
+39	278	7997414872603467	CMakeFiles/fractal-dll.dir/Release/palette.cpp.obj	d7765804fed233a7
+43	967	7997414872646216	CMakeFiles/fractal-dll.dir/Release/fractal_simd.cpp.obj	4226c252e47e2c10
+968	2775	7997414882662573	Release/libfractal-dll.dll	3f356c7163aecebc
+968	2775	7997414882662573	Release/libfractal-dll.dll.a	3f356c7163aecebc

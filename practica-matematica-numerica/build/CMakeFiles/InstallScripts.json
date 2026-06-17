@@ -1,0 +1,11 @@
+{
+	"Configs" : 
+	[
+		"Debug"
+	],
+	"InstallScripts" : 
+	[
+		"C:/tools/prog-paralela/producto-escalar/build/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

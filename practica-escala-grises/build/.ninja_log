@@ -1,0 +1,15 @@
+# ninja log v7
+59	253	8011681703234226	CMakeFiles/producto-escalar.dir/Debug/producto_escalar_serial.cpp.obj	276df6b21a15ae2
+63	256	8011681703287201	CMakeFiles/producto-escalar.dir/Debug/producto_escalar_openmp.cpp.obj	c84521bd40cc9ea3
+34	541	8014634090157562	CMakeFiles/producto-escalar.dir/Debug/main.cpp.obj	169b925a22b89ba4
+122	871	8014633598378691	CMakeFiles/producto-escalar.dir/Debug/producto_escalar_simd.cpp.obj	5724b97f91c1f333
+542	1255	8014634095234932	Debug/producto-escalar.exe	b7cef354e4076a30
+81	186	8014639944810872	CMakeFiles/practica-escala-grises.dir/Debug/producto_escalar_serial.cpp.obj	1e21c36de096f653
+86	202	8014639944853633	CMakeFiles/practica-escala-grises.dir/Debug/producto_escalar_openmp.cpp.obj	5115d070d92d87f0
+84	2456	8014753623129715	CMakeFiles/practica-escala-grises.dir/Debug/main.cpp.obj	43fa733ed0316d62
+91	749	8014639944899982	CMakeFiles/practica-escala-grises.dir/Debug/producto_escalar_simd.cpp.obj	747080c2d661ad37
+697	2904	8014755378274991	Debug/practica-escala-grises.exe	218ccdb71660dd04
+99	273	8014753623285272	CMakeFiles/practica-escala-grises.dir/Debug/filtro_openmp.cpp.obj	3cb734440d32ae1f
+8	696	8014755371380794	CMakeFiles/practica-escala-grises.dir/Debug/filtro_simd.cpp.obj	b5f18cd1e46a032d
+84	2398	8015537292380862	CMakeFiles/practica-escala-grises.dir/Debug/main.cpp.obj	43fa733ed0316d62
+2400	7292	8015537315526869	Debug/practica-escala-grises.exe	218ccdb71660dd04
