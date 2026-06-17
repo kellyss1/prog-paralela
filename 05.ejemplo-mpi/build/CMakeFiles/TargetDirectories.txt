@@ -1,5 +1,0 @@
-C:/tools/prog-paralela/05.ejemplo-mpi/build/CMakeFiles/ejemplo-mpi.dir
-C:/tools/prog-paralela/05.ejemplo-mpi/build/CMakeFiles/matrices_mult.dir
-C:/tools/prog-paralela/05.ejemplo-mpi/build/CMakeFiles/deber_mpi.dir
-C:/tools/prog-paralela/05.ejemplo-mpi/build/CMakeFiles/edit_cache.dir
-C:/tools/prog-paralela/05.ejemplo-mpi/build/CMakeFiles/rebuild_cache.dir

@@ -1,3 +1,0 @@
-C:/tools/prog-paralela/deber_mpi_colectivo/build/CMakeFiles/deber_mpi_colectivo.dir
-C:/tools/prog-paralela/deber_mpi_colectivo/build/CMakeFiles/edit_cache.dir
-C:/tools/prog-paralela/deber_mpi_colectivo/build/CMakeFiles/rebuild_cache.dir
