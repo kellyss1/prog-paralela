@@ -1,0 +1,11 @@
+{
+	"Configs" : 
+	[
+		"Debug"
+	],
+	"InstallScripts" : 
+	[
+		"C:/tools/prog-paralela/deber_mpi/build/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

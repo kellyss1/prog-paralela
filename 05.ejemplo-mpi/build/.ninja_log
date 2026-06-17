@@ -1,0 +1,7 @@
+# ninja log v7
+125	1310	8027684685007477	CMakeFiles/ejemplo-mpi.dir/Debug/main.cpp.obj	af46c7b4b13ba14b
+138	1392	8027684685122770	CMakeFiles/matrices_mult.dir/Debug/matrices_mult.cpp.obj	44f19a05e7253abd
+1393	3418	8027684697675561	Debug/matrices_mult.exe	86d8ba6266e53cbc
+1312	3420	8027684696858371	Debug/ejemplo-mpi.exe	897c354d4f46d1e0
+23	662	8027982846286458	CMakeFiles/deber_mpi.dir/Debug/deber_mpi.cpp.obj	4c0d8111f9ff812e
+662	1552	8027982852672831	Debug/deber_mpi.exe	808186796ffe9a6e

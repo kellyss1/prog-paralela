@@ -1,0 +1,26 @@
+CMD --------
+
+cd..
+cd..
+cd oneAPI
+setvars.bat
+cd C:\tools\prog-paralela\05.ejemplo-mpi\build\Debug
+mpiexec -n 4 matrices_mult.exe
+
+
+//TAREA
+implementacion
+Rellenar bloques, el mismo tamaño de bloques se envia
+cuantas filas vamos a rellenar es el pading
+
+Mas filas que procesos
+n-1 va a procesar mas rows
+se perderia filas de la matriz original == solucionar con serial o algo jadj
+
+para que funcione con cualquier dimension y numero de datos
+
+//Tarea 2 Ax Axb
+implementando ultilzando comunicacion colectiva
+mpi bcast, scatter, gather
+
+USAR EL RELLENO DE LA TAREA 1

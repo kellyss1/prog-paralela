@@ -1,0 +1,8 @@
+CMD --------
+
+cd..
+cd..
+cd oneAPI
+setvars.bat
+cd C:\tools\prog-paralela\deber_mpi\build\Debug
+mpiexec -n 4 deber_mpi.exe
