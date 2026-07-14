@@ -1,0 +1,9 @@
+Alt + 92
+tab para autocompletar
+
+cd C:\
+cd oneAPI
+setvars.bat
+cd C:\tools\prog-paralela\practica_mpi\build\Debug
+
+mpiexec -n 8 practica_mpi.exe
