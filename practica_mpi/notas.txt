@@ -7,3 +7,8 @@ setvars.bat
 cd C:\tools\prog-paralela\practica_mpi\build\Debug
 
 mpiexec -n 8 practica_mpi.exe
+
+set PATH:c:/tools/mingw64/bin;%PATH%
+gcc --version
+bootstrap-vcpkg.bat
+vcpkg install fmt sfml
