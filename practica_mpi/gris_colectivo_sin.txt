@@ -1,0 +1,95 @@
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h" // Librería para leer imágenes [cite: 1489]
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h" // Librería para escribir imágenes [cite: 1489]
+
+#include <mpi.h>
+#include <iostream>
+#include <vector>
+#include <fmt/core.h>
+
+// Función matemática de luminosidad directa [cite: 1487]
+void convertir_bloque_a_gris(const std::vector<uint8_t> &rgb_local, 
+                             std::vector<uint8_t> &gris_local, 
+                             int num_pixeles) {
+    for (int i = 0; i < num_pixeles; i++) {
+        // Cada píxel RGB avanza de 3 en 3 en el arreglo plano [cite: 1485]
+        uint8_t r = rgb_local[3 * i];
+        uint8_t g = rgb_local[3 * i + 1];
+        uint8_t b = rgb_local[3 * i + 2];
+        
+        // Fórmula oficial dada en el examen [cite: 1487]
+        gris_local[i] = static_cast<uint8_t>(0.21 * r + 0.72 * g + 0.07 * b); 
+    }
+}
+
+int main(int argc, char **argv) {
+    MPI_Init(&argc, &argv);
+
+    int nprocs, rank;
+    MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+    int width = 0, height = 0, channels = 0;
+    uint8_t* rgb_pixels_raw = nullptr;
+
+    // Solo el Rank 0 lee físicamente del disco duro [cite: 1488]
+    if (rank == 0) {
+        rgb_pixels_raw = stbi_load("imagen.jpg", &width, &height, &channels, STBI_rgb); // 
+        if (!rgb_pixels_raw) {
+            fmt::println("ERROR: No se pudo cargar la imagen");
+            MPI_Abort(MPI_COMM_WORLD, 1);
+        }
+    }
+
+    // Compartimos el ancho y el alto con todos mediante Bcast 
+    MPI_Bcast(&width, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Bcast(&height, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+    // --- DIVISIÓN DIRECTA (Asumiendo división exacta) ---
+    int total_pixeles = width * height;
+    int pixeles_por_rank = total_pixeles / nprocs; // Sin std::ceil ni residuos
+
+    // Los contenedores globales se crean y solo el Rank 0 los llena
+    std::vector<uint8_t> RGB_global;
+    std::vector<uint8_t> Gris_global;
+
+    if (rank == 0) {
+        // Tamaño exacto sin agregarle un solo byte extra de relleno
+        RGB_global.resize(total_pixeles * 3); 
+        Gris_global.resize(total_pixeles);
+
+        // Volcamos los píxeles cargados por STB al vector seguro de C++
+        for (int i = 0; i < total_pixeles * 3; i++) {
+            RGB_global[i] = rgb_pixels_raw[i];
+        }
+        stbi_image_free(rgb_pixels_raw); // Liberamos memoria de inmediato
+    }
+
+    // Preparación de buffers locales exactos
+    std::vector<uint8_t> RGB_local(pixeles_por_rank * 3); // Recibe RGB (3 bytes por píxel)
+    std::vector<uint8_t> Gris_local(pixeles_por_rank);    // Genera Gris (1 byte por píxel)
+
+    // --- OPERACIONES COLECTIVAS DIRECTAS ---
+
+    // 1. Repartimos las rebanadas RGB (Multiplicado por 3 porque son 3 canales) 
+    MPI_Scatter(RGB_global.data(), pixeles_por_rank * 3, MPI_BYTE,
+                RGB_local.data(), pixeles_por_rank * 3, MPI_BYTE, 0, MPI_COMM_WORLD);
+
+    // 2. Cada proceso trabaja de forma independiente en su sección
+    convertir_bloque_a_gris(RGB_local, Gris_local, pixeles_por_rank);
+
+    // 3. Recolectamos las rebanadas Grises (Tamaño normal porque es 1 canal)
+    MPI_Gather(Gris_local.data(), pixeles_por_rank, MPI_BYTE,
+               Gris_global.data(), pixeles_por_rank, MPI_BYTE, 0, MPI_COMM_WORLD);
+
+    // --- ESCRITURA EN DISCO (Solo Rank 0) ---
+    if (rank == 0) {
+        // Escribimos directamente Gris_global porque no contiene basura al final 
+        stbi_write_png("salida-gris.png", width, height, STBI_grey, Gris_global.data(), width);
+        fmt::println("¡Imagen guardada con éxito en 'salida-gris.png'!");
+    }
+
+    MPI_Finalize();
+    return 0;
+}
