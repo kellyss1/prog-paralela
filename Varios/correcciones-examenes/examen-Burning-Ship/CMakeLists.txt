@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(fractal-mpi)
+project(BurningShipFractalMPI)
 
 find_package(fmt CONFIG REQUIRED)
 find_package(SFML COMPONENTS 
@@ -22,14 +22,14 @@ include_directories(
      )
 
 
-add_executable(fractal-mpi
+add_executable(burning_ship_mpi
 main.cpp
 fractal_mpi.cpp
 palette.cpp
 draw_text.cpp
 )
 
-target_link_libraries(fractal-mpi PRIVATE 
+target_link_libraries(burning_ship_mpi PRIVATE 
 fmt::fmt 
 SFML::System
 SFML::Graphics
@@ -40,8 +40,8 @@ Freetype::Freetype
 ${MPI_LIB}/impi.lib
 )
 
-add_custom_command(TARGET fractal-mpi POST_BUILD
+add_custom_command(TARGET burning_ship_mpi POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
             ${MPI_ROOT}/bin/impi.dll
-            $<TARGET_FILE_DIR:fractal-mpi>
+            $<TARGET_FILE_DIR:burning_ship_mpi>
 )

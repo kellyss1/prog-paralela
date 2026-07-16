@@ -4,5 +4,5 @@ cd..
 cd oneAPI
 setvars.bat
 
-cd C:\tools\prog-paralela\06.fractal-mpi\build\Debug
-mpiexec.exe -n 8 fractal-mpi.exe
+cd C:\tools\prog-paralela\Varios\correcciones-examenes\examen-Burning-Ship\build\Debug
+mpiexec.exe -n 8 burning_ship_mpi.exe
