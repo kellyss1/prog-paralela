@@ -54,10 +54,16 @@ void dibujar_texto(int rank)
 {
     auto texto = fmt::format("RANK_{} - {}", rank, machine_name());
     if (rank == 0) {
-        draw_text_to_texture((unsigned char *)texture_buffer, ANCHO, ALTO, texto.c_str(), 10, 50, 20);
+        draw_text_to_texture((unsigned char *)texture_buffer,
+                             ANCHO, ALTO,
+                             texto.c_str(),
+                             10, 110, 20); // <-- Cambiado de 50 a 110 para evitar la colisión
     } else {
         int send_rows = rows_end - rows_start;
-        draw_text_to_texture((unsigned char *)pixel_buffer, ANCHO, send_rows, texto.c_str(), 10, 50, 20);
+        draw_text_to_texture((unsigned char *)pixel_buffer,
+                             ANCHO, send_rows,
+                             texto.c_str(),
+                             10, 50, 20);
     }
 }
 
