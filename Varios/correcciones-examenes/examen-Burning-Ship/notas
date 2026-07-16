@@ -1,0 +1,8 @@
+--- CMD ---
+cd..
+cd..
+cd oneAPI
+setvars.bat
+
+cd C:\tools\prog-paralela\06.fractal-mpi\build\Debug
+mpiexec.exe -n 8 fractal-mpi.exe
