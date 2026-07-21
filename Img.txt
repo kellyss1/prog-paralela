@@ -1,0 +1,243 @@
+#include <cuda_runtime.h>
+#include <device_launch_parameters.h>
+#include <cstdint>
+
+// Kernel CUDA para Convertir a Escala de Grises (Luminosidad)
+__global__ void kernel_gris_luminosidad(const uint8_t* rgba, uint8_t* gray, int width, int height) {
+    int x = blockIdx.x * blockDim.x + threadIdx.x;
+    int y = blockIdx.y * blockDim.y + threadIdx.y;
+
+    if (x < width && y < height) {
+        int idx = y * width + x;
+        int rgba_idx = idx * 4;
+
+        uint8_t r = rgba[rgba_idx];
+        uint8_t g = rgba[rgba_idx + 1];
+        uint8_t b = rgba[rgba_idx + 2];
+
+        gray[idx] = static_cast<uint8_t>(0.299f * r + 0.587f * g + 0.114f * b);
+    }
+}
+
+// Kernel CUDA para Desenfoque Box Blur (3x3)
+__global__ void kernel_blur(const uint8_t* rgba_in, uint8_t* rgba_out, int width, int height) {
+    int x = blockIdx.x * blockDim.x + threadIdx.x;
+    int y = blockIdx.y * blockDim.y + threadIdx.y;
+
+    if (x < width && y < height) {
+        int r_sum = 0, g_sum = 0, b_sum = 0, count = 0;
+
+        for (int dy = -1; dy <= 1; dy++) {
+            for (int dx = -1; dx <= 1; dx++) {
+                int nx = x + dx;
+                int ny = y + dy;
+
+                if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+                    int idx = (ny * width + nx) * 4;
+                    r_sum += rgba_in[idx];
+                    g_sum += rgba_in[idx + 1];
+                    b_sum += rgba_in[idx + 2];
+                    count++;
+                }
+            }
+        }
+
+        int out_idx = (y * width + x) * 4;
+        rgba_out[out_idx]     = static_cast<uint8_t>(r_sum / count);
+        rgba_out[out_idx + 1] = static_cast<uint8_t>(g_sum / count);
+        rgba_out[out_idx + 2] = static_cast<uint8_t>(b_sum / count);
+        rgba_out[out_idx + 3] = 255;
+    }
+}
+
+// Función C++ expuesta para llamar desde el main
+extern "C" void ejecutar_filtros_cuda(const uint8_t* h_rgba, uint8_t* h_gray, uint8_t* h_blur, int width, int height) {
+    size_t size_rgba = width * height * 4 * sizeof(uint8_t);
+    size_t size_gray = width * height * sizeof(uint8_t);
+
+    uint8_t *d_rgba_in, *d_gray_out, *d_blur_out;
+
+    // 1. Reservar memoria en GPU (Device)
+    cudaMalloc(&d_rgba_in, size_rgba);
+    cudaMalloc(&d_gray_out, size_gray);
+    cudaMalloc(&d_blur_out, size_rgba);
+
+    // 2. Copiar datos del Host (CPU) al Device (GPU)
+    cudaMemcpy(d_rgba_in, h_rgba, size_rgba, cudaMemcpyHostToDevice);
+
+    // 3. Configurar dimensiones del Grid y Bloques 2D
+    dim3 threadsPerBlock(16, 16);
+    dim3 numBlocks((width + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                  (height + threadsPerBlock.y - 1) / threadsPerBlock.y);
+
+    // 4. Lanzar Kernels
+    kernel_gris_luminosidad<<<numBlocks, threadsPerBlock>>>(d_rgba_in, d_gray_out, width, height);
+    kernel_blur<<<numBlocks, threadsPerBlock>>>(d_rgba_in, d_blur_out, width, height);
+
+    // 5. Copiar resultados de la GPU a la CPU
+    cudaMemcpy(h_gray, d_gray_out, size_gray, cudaMemcpyDeviceToHost);
+    cudaMemcpy(h_blur, d_blur_out, size_rgba, cudaMemcpyDeviceToHost);
+
+    // 6. Liberar memoria GPU
+    cudaFree(d_rgba_in);
+    cudaFree(d_gray_out);
+    cudaFree(d_blur_out);
+}
+
+
+
+
+#include <iostream>
+#include <vector>
+#include <optional>
+#include <SFML/Graphics.hpp>
+#include <omp.h>
+
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
+
+// ============================================================================
+// FUNCIONES AUXILIARES Y FILTROS EN CPU (OpenMP)
+// ============================================================================
+
+// Convierte el buffer de escala de grises (1 canal) a formato RGBA (4 canales) para mostrar en SFML
+void preparar_display(const uint8_t* gray, uint8_t* display, int total_pixeles) {
+    #pragma omp parallel for
+    for (int i = 0; i < total_pixeles; i++) {
+        display[i * 4]     = gray[i]; // R
+        display[i * 4 + 1] = gray[i]; // G
+        display[i * 4 + 2] = gray[i]; // B
+        display[i * 4 + 3] = 255;     // Alpha (opacidad)
+    }
+}
+
+// Método 2 de Grises: Promedio Ponderado / Luminosidad (OpenMP)
+// Fórmula estándar de percepción visual: Y = 0.299R + 0.587G + 0.114B
+void filtro_gris_luminosidad(const uint8_t* rgba, uint8_t* gray, int width, int height) {
+    int total_pixeles = width * height;
+    #pragma omp parallel for
+    for (int i = 0; i < total_pixeles; i++) {
+        uint8_t r = rgba[i * 4];
+        uint8_t g = rgba[i * 4 + 1];
+        uint8_t b = rgba[i * 4 + 2];
+        gray[i] = static_cast<uint8_t>(0.299f * r + 0.587f * g + 0.114f * b);
+    }
+}
+
+// Filtro Blur (Box Blur 3x3) con OpenMP
+void filtro_blur_openmp(const uint8_t* entrada_rgba, uint8_t* salida_rgba, int width, int height) {
+    #pragma omp parallel for collapse(2)
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            int r_sum = 0, g_sum = 0, b_sum = 0, count = 0;
+
+            // Iterar sobre la vecindad 3x3
+            for (int dy = -1; dy <= 1; dy++) {
+                for (int dx = -1; dx <= 1; dx++) {
+                    int nx = x + dx;
+                    int ny = y + dy;
+
+                    // Verificar límites de la imagen
+                    if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+                        int idx = (ny * width + nx) * 4;
+                        r_sum += entrada_rgba[idx];
+                        g_sum += entrada_rgba[idx + 1];
+                        b_sum += entrada_rgba[idx + 2];
+                        count++;
+                    }
+                }
+            }
+
+            int out_idx = (y * width + x) * 4;
+            salida_rgba[out_idx]     = static_cast<uint8_t>(r_sum / count);
+            salida_rgba[out_idx + 1] = static_cast<uint8_t>(g_sum / count);
+            salida_rgba[out_idx + 2] = static_cast<uint8_t>(b_sum / count);
+            salida_rgba[out_idx + 3] = 255; // Alpha
+        }
+    }
+}
+
+// ============================================================================
+// MAIN (SFML 3)
+// ============================================================================
+int main() {
+    // 1. Cargar la imagen con STB Image
+    int width, height, channels;
+    uint8_t* rgba_pixels = stbi_load("img.jpg", &width, &height, &channels, STBI_rgb_alpha);
+
+    if (!rgba_pixels) {
+        std::cout << "Error al cargar la imagen img.jpg\n";
+        return -1;
+    }
+
+    int total_pixeles = width * height;
+
+    // Buffers para los resultados
+    std::vector<uint8_t> gray_pixels(total_pixeles);
+    std::vector<uint8_t> display_buffer(total_pixeles * 4);
+    std::vector<uint8_t> blur_buffer(total_pixeles * 4);
+
+    // 2. Inicializar Ventana y Textura de SFML 3
+    sf::RenderWindow window(sf::VideoMode({(unsigned int)width, (unsigned int)height}), "Examen: Filtros Paralleles");
+    sf::Texture texture({(unsigned int)width, (unsigned int)height});
+    sf::Sprite sprite(texture);
+
+    texture.update(rgba_pixels); // Mostrar imagen original al inicio
+
+    // 3. Bucle Principal de la Ventana
+    while (window.isOpen()) {
+        while (const std::optional event = window.pollEvent()) {
+            if (event->is<sf::Event::Closed>()) {
+                window.close();
+            } 
+            else if (event->is<sf::Event::KeyReleased>()) {
+                auto evt = event->getIf<sf::Event::KeyReleased>();
+                if (!evt) continue;
+
+                switch (evt->scancode) {
+                    case sf::Keyboard::Scan::Num1: // Tecla 1: Original
+                        texture.update(rgba_pixels);
+                        std::cout << "Mostrando Original\n";
+                        break;
+
+                    case sf::Keyboard::Scan::Num2: // Tecla 2: Grises Por Luminosidad (OpenMP)
+                        filtro_gris_luminosidad(rgba_pixels, gray_pixels.data(), width, height);
+                        preparar_display(gray_pixels.data(), display_buffer.data(), total_pixeles);
+                        texture.update(display_buffer.data());
+                        std::cout << "Filtro Gris (Luminosidad OpenMP) aplicado.\n";
+                        break;
+
+                    case sf::Keyboard::Scan::Num3: // Tecla 3: Desenfoque / Blur (OpenMP)
+                        filtro_blur_openmp(rgba_pixels, blur_buffer.data(), width, height);
+                        texture.update(blur_buffer.data());
+                        std::cout << "Filtro Blur (OpenMP) aplicado.\n";
+                        break;
+
+                    case sf::Keyboard::Scan::S: // Guardar resultados
+                        stbi_write_png("salida_gris.png", width, height, 1, gray_pixels.data(), width);
+                        stbi_write_png("salida_blur.png", width, height, 4, blur_buffer.data(), width * 4);
+                        std::cout << "Imágenes guardadas con éxito.\n";
+                        break;
+
+                    default:
+                        break;
+                }
+            }
+        }
+
+        window.clear();
+        window.draw(sprite);
+        window.display();
+    }
+
+    // Liberar memoria cargada con C-style malloc por stb_image
+    stbi_image_free(rgba_pixels);
+
+    return 0;
+}
+
+
+
