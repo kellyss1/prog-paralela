@@ -224,3 +224,118 @@ int main() {
 
 nvcc -O3 mandelbrot.cu -o mandelbrot_cuda
 ./mandelbrot_cuda
+
+
+
+
+
+
+
+
+#include <iostream>
+#include <vector>
+#include <cstdint>
+#include <algorithm>
+#include <immintrin.h> // Intrínsecos SIMD (AVX2)
+#include <omp.h>        // API de OpenMP
+
+const int WIDTH = 1600;
+const int HEIGHT = 900;
+const int MAX_ITER = 100;
+
+void mandelbrot_openmp_simd(uint32_t* image_buffer) {
+    double x_min = -2.0, x_max = 1.0;
+    double y_min = -1.2, y_max = 1.2;
+    double dx = (x_max - x_min) / WIDTH;
+    double dy = (y_max - y_min) / HEIGHT;
+
+    // 1. REGION PARALELA OPENMP (Multinúcleo)
+    #pragma omp parallel
+    {
+        int thread_id = omp_get_thread_num();
+        int num_threads = omp_get_num_threads();
+
+        // Reparto manual de filas entre los hilos activos
+        int delta = (HEIGHT + num_threads - 1) / num_threads;
+        int row_start = thread_id * delta;
+        int row_end = std::min(HEIGHT, row_start + delta);
+
+        // Registros SIMD constantes por hilo
+        __m256d four = _mm256_set1_pd(4.0);
+        __m256d two  = _mm256_set1_pd(2.0);
+
+        // 2. BUCLE POR FILAS ASIGNADAS AL HILO
+        for (int j = row_start; j < row_end; j++) {
+            double cy_val = y_max - j * dy;
+            __m256d cy = _mm256_set1_pd(cy_val);
+
+            // 3. VECTORIZACION SIMD AVX2 (Avanza de 4 en 4 columnas)
+            for (int i = 0; i < WIDTH; i += 4) {
+                // Carga las 4 coordenadas complejas continuas: [x3, x2, x1, x0]
+                __m256d cx = _mm256_set_pd(
+                    x_min + (i + 3) * dx,
+                    x_min + (i + 2) * dx,
+                    x_min + (i + 1) * dx,
+                    x_min + (i + 0) * dx
+                );
+
+                __m256d zr = _mm256_setzero_pd();
+                __m256d zi = _mm256_setzero_pd();
+                __m256i iters = _mm256_setzero_si256(); // Contador de 4 enteros
+
+                // Bucle de iteración vectorial
+                for (int iter = 0; iter < MAX_ITER; iter++) {
+                    __m256d zr2 = _mm256_mul_pd(zr, zr);
+                    __m256d zi2 = _mm256_mul_pd(zi, zi);
+                    __m256d mag2 = _mm256_add_pd(zr2, zi2);
+
+                    // Máscara SIMD: comprueba cuáles de los 4 píxeles siguen con mag2 <= 4.0
+                    __m256d mask = _mm256_cmp_pd(mag2, four, _CMP_LE_OQ);
+
+                    // Si todos los 4 píxeles escaparon, rompemos la iteración antes
+                    int mask_int = _mm256_movemask_pd(mask);
+                    if (mask_int == 0) break;
+
+                    // Incrementa en +1 las iteraciones solo para los píxeles activos
+                    __m256i mask_i = _mm256_castpd_si256(mask);
+                    iters = _mm256_add_epi64(iters, _mm256_and_si256(mask_i, _mm256_set1_epi64x(1)));
+
+                    // Fórmula de Mandelbrot: z = z^2 + c
+                    // next_zr = zr^2 - zi^2 + cx
+                    __m256d next_zr = _mm256_add_pd(_mm256_sub_pd(zr2, zi2), cx);
+                    // next_zi = 2 * zr * zi + cy
+                    __m256d next_zi = _mm256_add_pd(_mm256_mul_pd(_mm256_mul_pd(two, zr), zi), cy);
+
+                    zr = next_zr;
+                    zi = next_zi;
+                }
+
+                // Extrae el resultado de los 4 píxeles del registro vectorial de la CPU
+                alignas(32) int64_t res[4];
+                _mm256_store_si256((__m256i*)res, iters);
+
+                // Asignación de colores en el buffer de la imagen
+                for (int k = 0; k < 4; k++) {
+                    int it = static_cast<int>(res[k]);
+                    uint32_t color = (it == MAX_ITER) ? 0xFF000000 : (0xFF000000 | (it * 255 / MAX_ITER));
+                    image_buffer[j * WIDTH + (i + k)] = color;
+                }
+            }
+        }
+    } // Punto de sincronización de hilos OpenMP
+}
+
+int main() {
+    std::vector<uint32_t> image(WIDTH * HEIGHT);
+
+    double start_time = omp_get_wtime();
+    
+    mandelbrot_openmp_simd(image.data());
+    
+    double end_time = omp_get_wtime();
+
+    std::cout << "Tiempo de ejecucion (OpenMP + SIMD): " 
+              << (end_time - start_time) * 1000.0 << " ms\n";
+
+    return 0;
+}
