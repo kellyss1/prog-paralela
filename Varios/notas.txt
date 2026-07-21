@@ -1,0 +1,226 @@
+#include <iostream>
+#include <vector>
+#include <cmath>
+#include <omp.h>
+
+const int WIDTH = 1600;
+const int HEIGHT = 900;
+const int MAX_ITER = 100;
+
+void mandelbrot_openmp_manual(uint32_t* image_buffer) {
+    double x_min = -2.0, x_max = 1.0;
+    double y_min = -1.2, y_max = 1.2;
+    double dx = (x_max - x_min) / WIDTH;
+    double dy = (y_max - y_min) / HEIGHT;
+
+    // Declaramos solo la región paralela
+    #pragma omp parallel
+    {
+        // Obtener el ID del hilo actual y el número total de hilos
+        int thread_id = omp_get_thread_num();
+        int num_threads = omp_get_num_threads();
+
+        // Calcular el bloque de filas asignado a este hilo (descomposición manual)
+        int delta = (HEIGHT + num_threads - 1) / num_threads; // Filas por hilo con ceil
+        int row_start = thread_id * delta;
+        int row_end = std::min(HEIGHT, row_start + delta);
+
+        // Cada hilo procesa su rango [row_start, row_end)
+        for (int j = row_start; j < row_end; j++) {
+            double cy = y_max - j * dy;
+            for (int i = 0; i < WIDTH; i++) {
+                double cx = x_min + i * dx;
+
+                double zr = 0.0, zi = 0.0;
+                int iter = 0;
+
+                while (iter < MAX_ITER && (zr * zr + zi * zi) <= 4.0) {
+                    double next_zr = zr * zr - zi * zi + cx;
+                    double next_zi = 2.0 * zr * zi + cy;
+                    zr = next_zr;
+                    zi = next_zi;
+                    iter++;
+                }
+
+                uint32_t color = (iter == MAX_ITER) ? 0xFF000000 : (0xFF000000 | (iter * 255 / MAX_ITER));
+                image_buffer[j * WIDTH + i] = color;
+            }
+        }
+    } // Barrier implícito: los hilos se sincronizan aquí
+}
+
+
+
+
+
+
+
+#include <immintrin.h> // Cabecera para intrínsecos x86/AVX
+#include <cstdint>
+#include <algorithm>
+
+const int WIDTH = 1600;
+const int HEIGHT = 900;
+const int MAX_ITER = 100;
+
+void mandelbrot_simd_puro(uint32_t* image_buffer) {
+    double x_min = -2.0, x_max = 1.0;
+    double y_min = -1.2, y_max = 1.2;
+    double dx = (x_max - x_min) / WIDTH;
+    double dy = (y_max - y_min) / HEIGHT;
+
+    // Bucle secuencial estándar para las filas
+    for (int j = 0; j < HEIGHT; j++) {
+        double cy_val = y_max - j * dy;
+        
+        // Registros vectoriales constantes para la iteración
+        __m256d cy   = _mm256_set1_pd(cy_val); // [cy_val, cy_val, cy_val, cy_val]
+        __m256d four = _mm256_set1_pd(4.0);    // Limite de escape 4.0
+        __m256d two  = _mm256_set1_pd(2.0);    // Constante 2.0
+
+        // Avanzamos de a 4 columnas por iteración mediante AVX2
+        for (int i = 0; i < WIDTH; i += 4) {
+            // Cargar las 4 coordenadas x contiguas: [x3, x2, x1, x0]
+            __m256d cx = _mm256_set_pd(
+                x_min + (i + 3) * dx,
+                x_min + (i + 2) * dx,
+                x_min + (i + 1) * dx,
+                x_min + (i + 0) * dx
+            );
+
+            __m256d zr = _mm256_setzero_pd();
+            __m256d zi = _mm256_setzero_pd();
+            
+            // Acumulador entero para guardar las iteraciones de los 4 píxeles
+            __m256i iters = _mm256_setzero_si256();
+
+            for (int iter = 0; iter < MAX_ITER; iter++) {
+                __m256d zr2 = _mm256_mul_pd(zr, zr);
+                __m256d zi2 = _mm256_mul_pd(zi, zi);
+                __m256d mag2 = _mm256_add_pd(zr2, zi2);
+
+                // Mascara de comparación: verifica cuáles píxeles siguen dentro del círculo (mag2 <= 4.0)
+                __m256d mask = _mm256_cmp_pd(mag2, four, _CMP_LE_OQ);
+
+                // Si todos los 4 píxeles ya escaparon, cortamos el bucle temprano
+                int mask_int = _mm256_movemask_pd(mask);
+                if (mask_int == 0) break;
+
+                // Sumamos 1 a las iteraciones solo para los píxeles activos (mask activa)
+                __m256i mask_i = _mm256_castpd_si256(mask);
+                iters = _mm256_add_epi64(iters, _mm256_and_si256(mask_i, _mm256_set1_epi64x(1)));
+
+                // Siguiente paso de Mandelbrot: z = z^2 + c
+                __m256d next_zr = _mm256_add_pd(_mm256_sub_pd(zr2, zi2), cx);
+                __m256d next_zi = _mm256_add_pd(_mm256_mul_pd(_mm256_mul_pd(two, zr), zi), cy);
+
+                zr = next_zr;
+                zi = next_zi;
+            }
+
+            // Descargar los 4 contadores de iteración de la CPU a memoria RAM convencional
+            alignas(32) int64_t res[4];
+            _mm256_store_si256((__m256i*)res, iters);
+
+            for (int k = 0; k < 4; k++) {
+                int it = static_cast<int>(res[k]);
+                uint32_t color = (it == MAX_ITER) ? 0xFF000000 : (0xFF000000 | (it * 255 / MAX_ITER));
+                image_buffer[j * WIDTH + (i + k)] = color;
+            }
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+#include <iostream>
+#include <vector>
+#include <cstdint>
+#include <cuda_runtime.h>
+
+#define WIDTH 1600
+#define HEIGHT 900
+#define MAX_ITER 100
+
+// KERNEL CUDA: Se ejecuta en paralelo en miles de núcleos de la GPU
+__global__ void mandelbrot_kernel(uint32_t* d_image, double x_min, double x_max, double y_min, double y_max) {
+    // Calcular la posición global del píxel asignado a este hilo en 2D
+    int i = blockIdx.x * blockDim.x + threadIdx.x; // Columna (X)
+    int j = blockIdx.y * blockDim.y + threadIdx.y; // Fila (Y)
+
+    // Verificación de límites de la imagen
+    if (i >= WIDTH || j >= HEIGHT) return;
+
+    double dx = (x_max - x_min) / WIDTH;
+    double dy = (y_max - y_min) / HEIGHT;
+
+    double cx = x_min + i * dx;
+    double cy = y_max - j * dy;
+
+    double zr = 0.0;
+    double zi = 0.0;
+    int iter = 0;
+
+    // Bucle clásico de Mandelbrot ejecutado independientemente por este hilo
+    while (iter < MAX_ITER && (zr * zr + zi * zi) <= 4.0) {
+        double next_zr = zr * zr - zi * zi + cx;
+        double next_zi = 2.0 * zr * zi + cy;
+        zr = next_zr;
+        zi = next_zi;
+        iter++;
+    }
+
+    uint32_t color = (iter == MAX_ITER) ? 0xFF000000 : (0xFF000000 | (iter * 255 / MAX_ITER));
+    
+    // Escribir el resultado directamente en la VRAM de la GPU
+    d_image[j * WIDTH + i] = color;
+}
+
+int main() {
+    size_t buffer_size = WIDTH * HEIGHT * sizeof(uint32_t);
+
+    // 1. Memoria en la RAM de la CPU (Host)
+    std::vector<uint32_t> h_image(WIDTH * HEIGHT);
+
+    // 2. Asignar Memoria en la VRAM de la GPU (Device)
+    uint32_t* d_image = nullptr;
+    cudaMalloc((void**)&d_image, buffer_size);
+
+    // 3. Configurar la Grilla de Hilos CUDA
+    // Definimos bloques 2D de 16x16 hilos (256 hilos por bloque)
+    dim3 threadsPerBlock(16, 16);
+    // Calculamos el número de bloques necesarios para cubrir la imagen
+    dim3 numBlocks((WIDTH + threadsPerBlock.x - 1) / threadsPerBlock.x,
+                   (HEIGHT + threadsPerBlock.y - 1) / threadsPerBlock.y);
+
+    std::cout << "Lanzando Kernel CUDA con " << numBlocks.x * numBlocks.y << " bloques...\n";
+
+    // 4. Lanzar el Kernel en la GPU
+    mandelbrot_kernel<<<numBlocks, threadsPerBlock>>>(d_image, -2.0, 1.0, -1.2, 1.2);
+
+    // Esperar a que la GPU termine de calcular
+    cudaDeviceSynchronize();
+
+    // 5. Copiar los resultados calculados desde la VRAM de la GPU hacia la RAM del Host
+    cudaMemcpy(h_image.data(), d_image, buffer_size, cudaMemcpyDeviceToHost);
+
+    std::cout << "¡Fractal calculado con éxito en GPU CUDA!\n";
+
+    // 6. Liberar la memoria asignada en la GPU
+    cudaFree(d_image);
+
+    return 0;
+}
+
+
+
+
+
+nvcc -O3 mandelbrot.cu -o mandelbrot_cuda
+./mandelbrot_cuda
