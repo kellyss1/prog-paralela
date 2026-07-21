@@ -339,3 +339,6 @@ int main() {
 
     return 0;
 }
+
+g++ -O3 -fopenmp -mavx2 mandelbrot_openmp_simd.cpp -o mandelbrot_hybrid
+./mandelbrot_hybrid
